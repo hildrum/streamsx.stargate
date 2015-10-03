@@ -1,3 +1,6 @@
+# Copyright (C) 2015, International Business Machines Corporation  
+# All Rights Reserved
+
 ifeq ($(CXX),g++)
 	  PLATFORM := $(shell uname -i)
 	    ifeq ($(PLATFORM),ppc64)
