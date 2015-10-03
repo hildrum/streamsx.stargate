@@ -1,3 +1,6 @@
+/* Copyright (C) 2015, International Business Machines Corporation  
+ * All Rights Reserved  
+ */
 namespace com.ibm.streamsx.hbase.rest;
 use com.ibm.streamsx.inet.http::*;
 use com.ibm.streamsx.base64::*;
