@@ -2,9 +2,10 @@ use com.ibm.streamsx.hbase.rest::*;
 
 composite TestHBase {
 param
-expression<rstring> $password:  "YFXEbCoqsJ-zXYvfnv89";
-expression<rstring> $username:  "biadmin";
-expression<rstring> $baseUrl: "https://169.55.55.241:8443/gateway/default/hbase";
+expression<rstring> $password;
+expression<rstring> $username;
+// should be something like https://ipaddr:port/gateway/default/hbase
+expression<rstring> $baseUrl;
 
 graph
 
