@@ -1,0 +1,23 @@
+use com.ibm.streamsx.hbase.rest::*;
+
+composite TestHBase {
+param
+expression<rstring> $password:  "YFXEbCoqsJ-zXYvfnv89";
+expression<rstring> $username:  "biadmin";
+expression<rstring> $baseUrl: "https://169.55.55.241:8443/gateway/default/hbase";
+
+graph
+
+() as Tester = Custom() {
+logic onProcess: {
+
+hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["family1","family2"]);
+hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue");
+hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue2");
+hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","cq2","myvalue3");
+RowType row = hbaseGet($baseUrl,$username,$password,"test_rest_api","testrow");
+appTrc(Trace.error,"result="+(rstring)row);
+}
+}
+
+}

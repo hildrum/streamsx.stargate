@@ -1,0 +1,4 @@
+toolkit.xml
+output
+com.ibm.streamsx.hbase.rest/impl/bin/*
+com.ibm.streamsx.hbase.rest/impl/lib/*

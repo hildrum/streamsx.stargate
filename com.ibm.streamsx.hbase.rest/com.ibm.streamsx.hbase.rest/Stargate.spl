@@ -1,0 +1,112 @@
+namespace com.ibm.streamsx.hbase.rest;
+use com.ibm.streamsx.inet.http::*;
+use com.ibm.streamsx.base64::*;
+
+type RowType = rstring row, list<tuple<rstring column, rstring value, int64 time>> cells;
+
+public void hbaseMakeTable(rstring baseUrl, rstring username, rstring password, rstring tableName, list<rstring>columnFamilies) {
+    rstring url = baseUrl+"/"+tableName+"/schema";
+    appTrc(Trace.debug,"full url: "+url);
+    mutable rstring toPut = "{\"name\":\""+tableName+"\",\"ColumnSchema\":[{\"name\":\""+columnFamilies[0]+"\"}";
+
+    mutable int32 family = 1;
+    while (family < size(columnFamilies)) {
+        toPut += ",{\"name\":\""+columnFamilies[1]+"\"}";
+        family++;
+    }
+    toPut +="]}";
+    if (isTraceable(Trace.debug)) {
+        appTrc(Trace.debug,"Table configuration: "+toPut);
+    }
+    mutable int32 error=0;
+    mutable list<rstring> returnedHeaders=[];
+    rstring toReturn = httpPut(toPut,url,["Accept: application/json","Content-Type: application/json"],username, password,returnedHeaders, error);
+    if (isTraceable(Trace.debug)) {
+        appTrc(Trace.debug,"put to make table returned "+toReturn);
+    }
+    if (error != 0) {
+	    appTrc(Trace.error, "Error code "+(rstring)error);
+	}
+}
+
+
+public rstring hbasePut(rstring baseUrl, rstring username, rstring password, rstring tableName, rstring row, rstring columnFamily, rstring columnQualifier, rstring value) {
+    rstring url = baseUrl+"/"+tableName+"/"+row;
+    mutable int32 rowError =0;
+    mutable int32 columnError = 0;
+    mutable int32 valueError = 0;
+    rstring toPut = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><CellSet><Row key=\""+base64Encode(row,rowError)+"\"><Cell column=\""+base64Encode(columnFamily+":"+columnQualifier,columnError)+"\">"+base64Encode(value,valueError)+"</Cell></Row></CellSet>";
+    if (rowError < 0 || columnError < 0 || valueError <0 ) {
+	    appTrc(Trace.error,"Problem encoding input");
+	    return "";
+    }
+    mutable int32 error =0;
+    mutable list<rstring> returnedHeaders =[];
+    if (isTraceable(Trace.debug)) {
+        appTrc(Trace.debug,"xml is"+toPut);
+    }
+    rstring toReturn = httpPost(toPut,url,["Accept: text/xml","Content-Type: text/xml"], username, password, returnedHeaders, error);
+    if (error != 0) {
+	    appTrc(Trace.error, "Error code for hbase put "+(rstring)error);
+	}
+	appTrc(Trace.error,"Result for hbase put "+toReturn);
+	return toReturn;
+}
+
+public  RowType hbaseGet(rstring baseUrl, rstring username, rstring password, rstring tableName, rstring row) {
+    rstring url = baseUrl +"/"+tableName+"/"+row;
+    mutable int32 error=0;
+    rstring resultJson = httpGet(url,["Accept: application/json","Content-Type: application/xml"], username, password, error);
+    if (error != 0) {
+	    appTrc(Trace.error, "Error code "+(rstring)error);
+	}
+    if (isTraceable(Trace.debug)) {
+        appTrc(Trace.error,"Result is "+resultJson);
+	}
+    int32 keyStart = findFirst(resultJson,"key\":");
+	int32 rowidStart = findFirst(resultJson,":",keyStart)+2;
+	int32 rowidEnd = findFirst(resultJson,"\"",rowidStart);
+	appTrc(Trace.trace, "Rowid start "+(rstring)rowidStart);
+	appTrc(Trace.trace,"Rowid end "+(rstring)rowidEnd);
+	appTrc(Trace.trace,"keyStart "+(rstring)keyStart);
+	rstring encodedRow = substring(resultJson,rowidStart, rowidEnd -rowidStart);
+	mutable int32 rowErr =0;
+	rstring rowid = base64DecodeToRstring(encodedRow,rowErr);
+	
+    if (isTraceable(Trace.trace)) {
+        appTrc(Trace.trace,"row key is "+rowid);
+	}
+    mutable list<tuple<rstring column, rstring value, int64 time>> cellList = [];
+	mutable int32 nextCell = findFirst(resultJson,"{",rowidEnd);
+	while (nextCell != -1) {
+		int32 columnStart =	findFirst(resultJson,"column\":",nextCell) + 9;
+		int32 columnEnd = findFirst(resultJson,"\"",columnStart);
+		rstring column = substring(resultJson,columnStart,columnEnd-columnStart);
+		
+		int32 valueStart =	findFirst(resultJson,"$\":",nextCell) + 4;
+		int32 valueEnd = findFirst(resultJson,"\"",valueStart);
+		rstring value = substring(resultJson,valueStart,valueEnd - valueStart);
+		
+		int32 timeStart =	findFirst(resultJson,"timestamp\":",nextCell) +11;
+		int32 timeEnd = findFirst(resultJson,",",timeStart);
+		rstring time = substring(resultJson,timeStart,timeEnd-timeStart);
+		if (isTraceable(Trace.trace)) {
+            appTrc(Trace.error,"column: "+column+" value "+value+" ts "+time);
+		}
+        mutable int32 colError=0;
+		mutable int32 valueError =0;
+		appendM(cellList,{column=base64DecodeToRstring(column,colError),value=base64DecodeToRstring(value,valueError),time=(int64)time});
+		if (colError < 0) {
+			appTrc(Trace.error, "error decoding "+column);
+		}
+		if (valueError < 0) {
+			appTrc(Trace.error,"error decoding "+value);
+		}
+		nextCell = findFirst(resultJson,"{",nextCell+1);
+		
+	}
+	if (isTraceable(Trace.trace)) {
+        appTrc(Trace.error,"Cell list:"+(rstring)cellList);
+	}
+    return {row = rowid,cells=cellList};
+}
