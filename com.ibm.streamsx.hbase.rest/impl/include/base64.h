@@ -1,3 +1,6 @@
+/* Copyright (C) 2015, International Business Machines Corporation  
+ * All Rights Reserved  
+ */
 #ifndef STREAMSX_BASE64
 #define STREAMSX_BASE64
 #include <SPL/Runtime/Type/Blob.h>
