@@ -1,4 +1,7 @@
-//#include <iostream>
+/* Copyright (C) 2015, International Business Machines Corporation  
+ * All Rights Reserved  
+ */
+ 
 #include "base64.h"
 namespace com_ibm_streamsx_base64 {
 

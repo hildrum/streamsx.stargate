@@ -1,3 +1,6 @@
+/* Copyright (C) 2015, International Business Machines Corporation  
+ * All Rights Reserved  
+ */
 namespace com.ibm.streamsx.hbase.rest;
 use com.ibm.streamsx.inet.http::*;
 use com.ibm.streamsx.base64::*;
@@ -64,8 +67,10 @@ public rstring hbasePut(rstring baseUrl, rstring username, rstring password, rst
     if (error != 0) {
 	    appTrc(Trace.error, "Error code for hbase put "+(rstring)error);
 	}
-	appTrc(Trace.error,"Result for hbase put "+toReturn);
-	return toReturn;
+    if (isTraceable(Trace.debug)) {
+	    appTrc(Trace.error,"Result for hbase put "+toReturn);
+    }
+    return toReturn;
 }
 
 public  RowType hbaseGet(rstring baseUrl, rstring username, rstring password, rstring tableName, rstring row) {

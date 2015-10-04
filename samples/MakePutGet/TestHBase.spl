@@ -1,10 +1,14 @@
+/* Copyright (C) 2015, International Business Machines Corporation  
+ * All Rights Reserved  
+ */
 use com.ibm.streamsx.hbase.rest::*;
 
 composite TestHBase {
 param
-expression<rstring> $password:  "YFXEbCoqsJ-zXYvfnv89";
-expression<rstring> $username:  "biadmin";
-expression<rstring> $baseUrl: "https://169.55.55.241:8443/gateway/default/hbase";
+expression<rstring> $password;
+expression<rstring> $username;
+// should be something like https://ipaddr:port/gateway/default/hbase
+expression<rstring> $baseUrl;
 
 graph
 
@@ -12,7 +16,7 @@ graph
 logic onProcess: {
 hbaseDeleteTable($baseUrl,$username,$password,"doesnotexisttable");
 hbaseDeleteTable($baseUrl,$username,$password,"test_rest_api");
-hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["family1","family2"]);
+hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["all"]);
 hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue");
 hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue2");
 hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","cq2","myvalue3");
