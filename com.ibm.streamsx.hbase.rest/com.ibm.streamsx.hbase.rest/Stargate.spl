@@ -4,6 +4,21 @@ use com.ibm.streamsx.base64::*;
 
 type RowType = rstring row, list<tuple<rstring column, rstring value, int64 time>> cells;
 
+public rstring hbaseDeleteTable(rstring baseUrl, rstring username, rstring password, rstring tableName) {
+
+rstring url = baseUrl +"/"+tableName+"/schema";
+if (isTraceable(Trace.debug)) {
+   appTrc(Trace.debug,"full url: "+url);
+}
+mutable int32 error = 0;
+rstring toReturn = httpDelete(url,(list<rstring>)[],username,password,error);
+if (isTraceable(Trace.debug)) {
+    appTrc(Trace.debug, "returned: "+toReturn);
+}
+
+return toReturn;
+}
+
 public void hbaseMakeTable(rstring baseUrl, rstring username, rstring password, rstring tableName, list<rstring>columnFamilies) {
     rstring url = baseUrl+"/"+tableName+"/schema";
     appTrc(Trace.debug,"full url: "+url);
