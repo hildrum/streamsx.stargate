@@ -10,7 +10,8 @@ graph
 
 () as Tester = Custom() {
 logic onProcess: {
-
+hbaseDeleteTable($baseUrl,$username,$password,"doesnotexisttable");
+hbaseDeleteTable($baseUrl,$username,$password,"test_rest_api");
 hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["family1","family2"]);
 hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue");
 hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue2");
