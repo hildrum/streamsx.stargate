@@ -27,8 +27,6 @@ distributed:
 	$(SPLC) $(SPLC_FLAGS) -M $(SPL_MAIN_COMPOSITE) --output-dir ./$(DISTRIBUTED_OUTPUT_DIR)/$(SPL_MAIN_COMPOSITE) $(SPL_CMD_ARGS)
 
 clean: clean-standalone clean-distributed
-	rm data/dropFirst.txt
-	rm data/lines.txt
 
 clean-standalone:
 	$(SPLC) $(SPLC_FLAGS) -C -M $(SPL_MAIN_COMPOSITE) --output-dir ./$(STANDALONE_OUTPUT_DIR)/$(SPL_MAIN_COMPOSITE)
