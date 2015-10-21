@@ -4,25 +4,25 @@
 use com.ibm.streamsx.hbase.rest::*;
 
 composite TestHBase {
-param
-expression<rstring> $password;
-expression<rstring> $username;
-// should be something like https://ipaddr:port/gateway/default/hbase
-expression<rstring> $baseUrl;
+    param
+        expression<rstring> $password:getSubmissionTimeValue("password");
+    expression<rstring> $username:getSubmissionTimeValue("username");
+    // should be something like https://ipaddr:port/gateway/default/hbase
+    expression<rstring> $baseUrl:getSubmissionTimeValue("url");
 
-graph
+    graph
 
-() as Tester = Custom() {
-logic onProcess: {
-hbaseDeleteTable($baseUrl,$username,$password,"doesnotexisttable");
-hbaseDeleteTable($baseUrl,$username,$password,"test_rest_api");
-hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["all"]);
-hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue");
-hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue2");
-hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","cq2","myvalue3");
-RowType row = hbaseGet($baseUrl,$username,$password,"test_rest_api","testrow");
-appTrc(Trace.error,"result="+(rstring)row);
-}
-}
+        () as Tester = Custom() {
+            logic onProcess: {
+                hbaseDeleteTable($baseUrl,$username,$password,"doesnotexisttable");
+                hbaseDeleteTable($baseUrl,$username,$password,"test_rest_api");
+                hbaseMakeTable($baseUrl,$username,$password,"test_rest_api",["all"]);
+                hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue");
+                hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","testcq","myvalue2");
+                hbasePut($baseUrl,$username,$password,"test_rest_api","testrow","all","cq2","myvalue3");
+                RowType row = hbaseGet($baseUrl,$username,$password,"test_rest_api","testrow");
+                appTrc(Trace.error,"result="+(rstring)row);
+            }
+        }
 
 }

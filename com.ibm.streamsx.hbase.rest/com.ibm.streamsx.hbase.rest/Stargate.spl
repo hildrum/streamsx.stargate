@@ -3,7 +3,7 @@
  */
 namespace com.ibm.streamsx.hbase.rest;
 use com.ibm.streamsx.inet.http::*;
-use com.ibm.streamsx.base64::*;
+use com.ibm.streamsx.bytes.conversion::*;
 
 type RowType = rstring row, list<tuple<rstring column, rstring value, int64 time>> cells;
 
@@ -50,14 +50,7 @@ public void hbaseMakeTable(rstring baseUrl, rstring username, rstring password, 
 
 public rstring hbasePut(rstring baseUrl, rstring username, rstring password, rstring tableName, rstring row, rstring columnFamily, rstring columnQualifier, rstring value) {
     rstring url = baseUrl+"/"+tableName+"/"+row;
-    mutable int32 rowError =0;
-    mutable int32 columnError = 0;
-    mutable int32 valueError = 0;
-    rstring toPut = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><CellSet><Row key=\""+base64Encode(row,rowError)+"\"><Cell column=\""+base64Encode(columnFamily+":"+columnQualifier,columnError)+"\">"+base64Encode(value,valueError)+"</Cell></Row></CellSet>";
-    if (rowError < 0 || columnError < 0 || valueError <0 ) {
-	    appTrc(Trace.error,"Problem encoding input");
-	    return "";
-    }
+    rstring toPut = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?><CellSet><Row key=\""+encodeBase64(row)+"\"><Cell column=\""+encodeBase64(columnFamily+":"+columnQualifier)+"\">"+encodeBase64(value)+"</Cell></Row></CellSet>";
     mutable int32 error =0;
     mutable list<rstring> returnedHeaders =[];
     if (isTraceable(Trace.debug)) {
@@ -90,8 +83,7 @@ public  RowType hbaseGet(rstring baseUrl, rstring username, rstring password, rs
 	appTrc(Trace.trace,"Rowid end "+(rstring)rowidEnd);
 	appTrc(Trace.trace,"keyStart "+(rstring)keyStart);
 	rstring encodedRow = substring(resultJson,rowidStart, rowidEnd -rowidStart);
-	mutable int32 rowErr =0;
-	rstring rowid = base64DecodeToRstring(encodedRow,rowErr);
+	rstring rowid = decodeBase64(encodedRow);
 	
     if (isTraceable(Trace.trace)) {
         appTrc(Trace.trace,"row key is "+rowid);
@@ -113,15 +105,7 @@ public  RowType hbaseGet(rstring baseUrl, rstring username, rstring password, rs
 		if (isTraceable(Trace.trace)) {
             appTrc(Trace.error,"column: "+column+" value "+value+" ts "+time);
 		}
-        mutable int32 colError=0;
-		mutable int32 valueError =0;
-		appendM(cellList,{column=base64DecodeToRstring(column,colError),value=base64DecodeToRstring(value,valueError),time=(int64)time});
-		if (colError < 0) {
-			appTrc(Trace.error, "error decoding "+column);
-		}
-		if (valueError < 0) {
-			appTrc(Trace.error,"error decoding "+value);
-		}
+		appendM(cellList,{column=decodeBase64(column),value=decodeBase64(value),time=(int64)time});
 		nextCell = findFirst(resultJson,"{",nextCell+1);
 		
 	}
