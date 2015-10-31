@@ -45,7 +45,7 @@ public void hbaseMakeTable(rstring baseUrl, rstring username, rstring password, 
 
     mutable int32 family = 1;
     while (family < size(columnFamilies)) {
-        toPut += ",{\"name\":\""+columnFamilies[1]+"\"}";
+        toPut = toPut+",{\"name\":\""+columnFamilies[family]+"\"}";
         family++;
     }
     toPut +="]}";
